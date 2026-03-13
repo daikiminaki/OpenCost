@@ -14,6 +14,10 @@ OpenCost is a local-first analytics and optimization sidecar for OpenClaw.
 
 ## Quickstart
 ```bash
+# create a venv
+python3 -m venv .venv
+source .venv/source/activate
+# make
 make setup
 make seed
 make api
