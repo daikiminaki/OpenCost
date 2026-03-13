@@ -1,0 +1,2 @@
+-- Initial schema is managed by SQLAlchemy metadata create_all in MVP.
+-- Keep this file as a placeholder for migration tooling upgrade.
