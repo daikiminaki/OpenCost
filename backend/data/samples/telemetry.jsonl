@@ -1,0 +1,2 @@
+{"timestamp":"2026-03-12T17:10:00","session_id":"s4","task_id":"t5","agent":"telemetry_worker","provider":"openai","model":"gpt-4o","input_tokens":4000,"output_tokens":2200,"tool_calls_count":6,"success":true,"text":"planning strategy and execution"}
+{"timestamp":"2026-03-13T08:30:00","session_id":"s5","task_id":"t6","agent":"summary_agent","provider":"ollama","model":"llama3.1","input_tokens":3000,"output_tokens":1000,"tool_calls_count":2,"success":true,"text":"extract and summarize logs"}

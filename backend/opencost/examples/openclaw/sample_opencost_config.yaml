@@ -1,0 +1,11 @@
+openclaw:
+  logs_path: ~/.openclaw/sessions
+  telemetry_path: ~/.openclaw/extensions/telemetry/logs
+server:
+  host: 127.0.0.1
+  port: 4680
+pricing:
+  currency: USD
+recommendations:
+  default_strategy: balanced
+  monthly_budget_usd: 50
