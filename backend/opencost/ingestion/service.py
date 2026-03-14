@@ -36,6 +36,7 @@ def ingest_paths(db: Session, sources: list[tuple[str, Path]]) -> int:
                 db.add(event)
                 db.flush()
                 category, confidence, reason = classify_event({**raw, **normalized})
+                event.task_category = category
                 db.add(TaskClassification(usage_event_id=event.id, category=category, confidence=confidence, reason=reason))
                 inserted += 1
     db.commit()

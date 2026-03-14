@@ -88,5 +88,14 @@ def seed() -> None:
     typer.echo(f"Seeded {count} events")
 
 
+@app.command("serve")
+def serve(host: str = "127.0.0.1", port: int = 4680) -> None:
+    """Run local OpenCost API server."""
+    import uvicorn
+
+    init_db()
+    uvicorn.run("opencost.api.main:app", host=host, port=port, reload=False)
+
+
 if __name__ == "__main__":
     app()

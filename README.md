@@ -1,32 +1,45 @@
 # OpenCost
 
-OpenCost is a local-first analytics and optimization sidecar for OpenClaw.
+OpenCost is a local-first analytics and optimization sidecar for OpenClaw. It ingests local logs, estimates token/cost usage, and exposes local APIs + dashboard views for usage and optimization.
 
 ## Stack
-- Backend: FastAPI + Python 3.12 + SQLAlchemy + SQLite
-- Frontend: Next.js
+- Backend: FastAPI + SQLAlchemy + SQLite
+- Frontend: Next.js + React + Tailwind + Recharts
 - CLI: Typer
 
-## Repo layout
-- `backend/opencost`: API, CLI, ingestion, pricing, classification, optimizer
-- `backend/data/samples`: local sample logs
-- `frontend`: local dashboard
+## Structure
+- `backend/opencost/services/analytics_service.py`: dashboard analytics pipeline
+- `backend/opencost/api/main.py`: API routes for dashboard, logs, analytics, reports, insights
+- `frontend/src/pages/dashboard/*.tsx`: Overview, Logs, Analytics, Reports, Insights
+- `frontend/src/components/*`: reusable cards, charts, filters, tables
+- `frontend/src/lib/api.ts`: API client
 
-## Quickstart
+## Quick start
 ```bash
-# create a venv
-python3 -m venv .venv
-source .venv/source/activate
-# make
 make setup
 make seed
-make api
+make serve
 # in another terminal
 make frontend
 ```
 
+- API: `http://localhost:4680`
+- Dashboard: `http://localhost:3000/dashboard/overview`
+
+## Key API endpoints
+- `GET /api/dashboard/overview`
+- `GET /api/dashboard/recent-sessions`
+- `GET /api/logs`
+- `GET /api/analytics/model-usage`
+- `GET /api/analytics/provider-usage`
+- `GET /api/analytics/agent-usage`
+- `GET /api/analytics/token-efficiency`
+- `GET /api/reports/cost?period=7d|30d|90d`
+- `GET /api/insights`
+
 ## CLI
 ```bash
+opencost serve
 opencost ingest backfill
 opencost ingest watch
 opencost summarize --period 7d
@@ -35,41 +48,8 @@ opencost configs list
 opencost configs export --id 1
 ```
 
-## Local config
-`~/.opencost/config.yaml`
-
-```yaml
-openclaw:
-  logs_path: ~/.openclaw/sessions
-  telemetry_path: ~/.openclaw/extensions/telemetry/logs
-server:
-  host: 127.0.0.1
-  port: 4680
-pricing:
-  currency: USD
-recommendations:
-  default_strategy: balanced
-  monthly_budget_usd: 50
-```
-
-## API endpoints
-- `GET /health`
-- `GET /api/overview?period=7d|30d`
-- `GET /api/usage/daily`
-- `GET /api/usage/models`
-- `GET /api/usage/categories`
-- `GET /api/sessions/recent`
-- `GET /api/recommendations`
-- `POST /api/recommendations/generate`
-- `GET /api/configs`
-- `GET /api/configs/{id}`
-- `POST /api/configs/export`
-- `POST /api/simulate`
-
-## Tests
-```bash
-make test
-```
+## Log explorer filters
+`/api/logs` supports: `limit`, `offset`, `start_time`, `end_time`, `provider`, `model`, `task_category`, `agent`, `session_id`, `q`.
 
 ## Screenshots
-_Add dashboard screenshots here after running locally._
+_Add dashboard screenshots after running frontend + backend locally._

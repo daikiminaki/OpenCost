@@ -19,14 +19,15 @@ class UsageEvent(Base):
     __tablename__ = "usage_events"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     event_fingerprint: Mapped[str] = mapped_column(String(128), unique=True, index=True)
-    source_type: Mapped[str] = mapped_column(String(50))
+    source_type: Mapped[str] = mapped_column(String(50), index=True)
     source_file: Mapped[str] = mapped_column(String(500))
     timestamp: Mapped[datetime] = mapped_column(DateTime, index=True)
-    session_id: Mapped[str | None] = mapped_column(String(120), nullable=True)
-    task_id: Mapped[str | None] = mapped_column(String(120), nullable=True)
-    agent_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
-    provider: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    model: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    session_id: Mapped[str | None] = mapped_column(String(120), nullable=True, index=True)
+    task_id: Mapped[str | None] = mapped_column(String(120), nullable=True, index=True)
+    agent_name: Mapped[str | None] = mapped_column(String(120), nullable=True, index=True)
+    provider: Mapped[str | None] = mapped_column(String(50), nullable=True, index=True)
+    model: Mapped[str | None] = mapped_column(String(120), nullable=True, index=True)
+    task_category: Mapped[str | None] = mapped_column(String(50), nullable=True, index=True)
     prompt_tokens: Mapped[int] = mapped_column(Integer, default=0)
     completion_tokens: Mapped[int] = mapped_column(Integer, default=0)
     cached_tokens: Mapped[int] = mapped_column(Integer, default=0)
@@ -34,7 +35,7 @@ class UsageEvent(Base):
     estimated_cost_usd: Mapped[float | None] = mapped_column(Float, nullable=True)
     latency_ms: Mapped[float | None] = mapped_column(Float, nullable=True)
     tool_calls_count: Mapped[int] = mapped_column(Integer, default=0)
-    success: Mapped[bool] = mapped_column(Boolean, default=True)
+    success: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
     raw_payload_json: Mapped[dict] = mapped_column(JSON)
 
 
@@ -51,7 +52,7 @@ class TaskRun(Base):
 class TaskClassification(Base):
     __tablename__ = "task_classifications"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    usage_event_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    usage_event_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
     task_run_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     category: Mapped[str] = mapped_column(String(50), index=True)
     confidence: Mapped[float] = mapped_column(Float)

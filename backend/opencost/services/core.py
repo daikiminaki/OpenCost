@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import desc, func, select
 from sqlalchemy.orm import Session
 
-from opencost.models.models import OptimizerRecommendation, RoutingConfigVersion, TaskClassification, UsageEvent
+from opencost.models.models import OptimizerRecommendation, RoutingConfigVersion, UsageEvent
 from opencost.optimizer.engine import STRATEGIES, generate_recommendations
 
 
@@ -23,27 +23,39 @@ def get_cost_summary(db: Session, period: str = "7d") -> dict:
             func.count(UsageEvent.id),
         ).where(UsageEvent.timestamp >= start)
     ).one()
-    return {"period": period, "total_cost_usd": float(row[0] or 0.0), "total_tokens": int(row[1] or 0), "total_events": int(row[2] or 0)}
+    return {
+        "period": period,
+        "total_cost_usd": float(row[0] or 0.0),
+        "total_tokens": int(row[1] or 0),
+        "total_events": int(row[2] or 0),
+    }
 
 
 def get_usage_breakdown(db: Session, group_by: str, period: str = "30d") -> list[dict]:
     days = _period_days(period)
     start = datetime.utcnow() - timedelta(days=days)
     if group_by == "category":
-        stmt = (
-            select(TaskClassification.category, func.count(TaskClassification.id), func.coalesce(func.sum(UsageEvent.total_tokens), 0), func.coalesce(func.sum(UsageEvent.estimated_cost_usd), 0.0))
-            .join(UsageEvent, UsageEvent.id == TaskClassification.usage_event_id)
-            .where(UsageEvent.timestamp >= start)
-            .group_by(TaskClassification.category)
-        )
+        field = UsageEvent.task_category
+    elif group_by == "provider":
+        field = UsageEvent.provider
     else:
-        field = UsageEvent.model if group_by == "model" else UsageEvent.provider
-        stmt = (
-            select(field, func.count(UsageEvent.id), func.coalesce(func.sum(UsageEvent.total_tokens), 0), func.coalesce(func.sum(UsageEvent.estimated_cost_usd), 0.0))
-            .where(UsageEvent.timestamp >= start)
-            .group_by(field)
+        field = UsageEvent.model
+
+    stmt = (
+        select(
+            field,
+            func.count(UsageEvent.id),
+            func.coalesce(func.sum(UsageEvent.total_tokens), 0),
+            func.coalesce(func.sum(UsageEvent.estimated_cost_usd), 0.0),
         )
-    return [{"key": str(r[0]), "count": int(r[1]), "total_tokens": int(r[2]), "total_cost_usd": float(r[3])} for r in db.execute(stmt)]
+        .where(UsageEvent.timestamp >= start)
+        .group_by(field)
+        .order_by(desc(func.count(UsageEvent.id)))
+    )
+    return [
+        {"key": str(r[0] or "unknown"), "count": int(r[1]), "total_tokens": int(r[2]), "total_cost_usd": float(r[3])}
+        for r in db.execute(stmt)
+    ]
 
 
 def get_recommendations(db: Session, strategy: str | None = None):
