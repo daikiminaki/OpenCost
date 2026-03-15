@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import date, timedelta
 from pathlib import Path
 
 import typer
@@ -10,13 +11,17 @@ from opencost.core.config import settings
 from opencost.db.init_db import init_db
 from opencost.db.session import SessionLocal
 from opencost.ingestion.service import ingest_paths, watch_paths
+from opencost.providers.client import ProviderAPIError, sync_provider_data
+from opencost.providers.pipeline import process_provider_payload
 from opencost.services.core import export_config, generate_and_fetch, get_cost_summary, get_recommendations
 
 app = typer.Typer(help="OpenCost CLI")
 ingest_app = typer.Typer(help="Ingestion commands")
 configs_app = typer.Typer(help="Config commands")
+providers_app = typer.Typer(help="Provider API sync commands")
 app.add_typer(ingest_app, name="ingest")
 app.add_typer(configs_app, name="configs")
+app.add_typer(providers_app, name="providers")
 
 
 def _sources() -> list[tuple[str, Path]]:
@@ -95,6 +100,54 @@ def serve(host: str = "127.0.0.1", port: int = 4680) -> None:
 
     init_db()
     uvicorn.run("opencost.api.main:app", host=host, port=port, reload=False)
+
+
+@providers_app.command("sync")
+def provider_sync(
+    provider: str = typer.Option(..., help="Provider name (openai|anthropic)"),
+    start_date: str = typer.Option((date.today() - timedelta(days=7)).isoformat(), help="YYYY-MM-DD"),
+    end_date: str = typer.Option(date.today().isoformat(), help="YYYY-MM-DD"),
+    api_key: str | None = typer.Option(None, help="Provider API key; defaults to config/env"),
+) -> None:
+    """Fetch model availability + usage + pricing metadata directly from provider APIs."""
+    provider = provider.lower()
+    selected_key = api_key
+    if not selected_key:
+        if provider == "openai":
+            selected_key = settings.providers.openai_api_key
+        elif provider == "anthropic":
+            selected_key = settings.providers.anthropic_api_key
+
+    if not selected_key:
+        raise typer.BadParameter(
+            f"Missing API key for {provider}. Set --api-key or configure providers.{provider}_api_key / env var."
+        )
+
+    try:
+        result = sync_provider_data(
+            provider=provider,
+            api_key=selected_key,
+            start_date=date.fromisoformat(start_date),
+            end_date=date.fromisoformat(end_date),
+        )
+    except ProviderAPIError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+    processed = process_provider_payload(result.provider, result.models, result.usage)
+
+    typer.echo(
+        json.dumps(
+            {
+                "provider": result.provider,
+                "model_count": len(result.models),
+                "models": result.models,
+                "usage": result.usage,
+                "pricing": result.pricing,
+                "processed": processed.to_dict(),
+            },
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":

@@ -27,11 +27,17 @@ class RecommendationConfig(BaseModel):
     monthly_budget_usd: float = 50.0
 
 
+class ProviderAPIConfig(BaseModel):
+    openai_api_key: str | None = None
+    anthropic_api_key: str | None = None
+
+
 class AppConfig(BaseModel):
     openclaw: OpenClawConfig = Field(default_factory=OpenClawConfig)
     server: ServerConfig = Field(default_factory=ServerConfig)
     pricing: PricingConfig = Field(default_factory=PricingConfig)
     recommendations: RecommendationConfig = Field(default_factory=RecommendationConfig)
+    providers: ProviderAPIConfig = Field(default_factory=ProviderAPIConfig)
     database_url: str = "sqlite:///./opencost.db"
 
 
@@ -57,6 +63,11 @@ def load_config(path: str | None = None) -> AppConfig:
         raw.setdefault("server", {})["host"] = os.environ["OPENCOST_SERVER_HOST"]
     if os.environ.get("OPENCOST_SERVER_PORT"):
         raw.setdefault("server", {})["port"] = int(os.environ["OPENCOST_SERVER_PORT"])
+
+    if os.environ.get("OPENAI_API_KEY"):
+        raw.setdefault("providers", {})["openai_api_key"] = os.environ["OPENAI_API_KEY"]
+    if os.environ.get("ANTHROPIC_API_KEY"):
+        raw.setdefault("providers", {})["anthropic_api_key"] = os.environ["ANTHROPIC_API_KEY"]
 
     return AppConfig.model_validate(raw)
 
