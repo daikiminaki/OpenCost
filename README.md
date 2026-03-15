@@ -13,6 +13,7 @@ OpenCost is a local-first analytics and optimization sidecar for OpenClaw. It in
 - `frontend/src/pages/dashboard/*.tsx`: Overview, Logs, Analytics, Reports, Insights
 - `frontend/src/components/*`: reusable cards, charts, filters, tables
 - `frontend/src/lib/api.ts`: API client
+- `ios/AgentUsageTracker/`: iOS starter subproject for task tracking and usage summaries
 
 ## Quick start
 ```bash
