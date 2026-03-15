@@ -46,6 +46,7 @@ opencost summarize --period 7d
 opencost recommend --strategy balanced
 opencost configs list
 opencost configs export --id 1
+opencost providers sync --provider openai
 ```
 
 ## Log explorer filters
@@ -53,3 +54,8 @@ opencost configs export --id 1
 
 ## Screenshots
 _Add dashboard screenshots after running frontend + backend locally._
+
+## Provider API sync
+- Use provider APIs directly to pull model availability and usage metadata: `opencost providers sync --provider openai`
+- See `backend/opencost/examples/openclaw/provider_api_guide.md` for provider support, payload format contract, and API key best practices for local + future hosted deployments.
+- See `backend/opencost/examples/openclaw/provider_endpoints_data_structures.md` for endpoint-by-endpoint usage/token-cost schema mapping and processing pipeline output.
